@@ -15,6 +15,7 @@ public interface IRegistrationVerificationCodeGenerator {
 public enum VerificationCodePurpose {
     Registration,
     EmailRebind,
+    Login,
 }
 
 public interface IRegistrationVerificationCodeSender {

@@ -4,12 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Sandlada.Extension.Auth.Application.Auth;
 
-public sealed record LoginOneUserByEmailAddressCommand : IRequest<IResult<AuthenticatedUserResponse>> {
+public sealed record LoginOneUserByEmailAddressAndPasswordCommand : IRequest<IResult<AuthenticatedUserResponse>> {
     public required string EmailAddress { get; init; }
     public required string Password { get; init; }
 
     [SetsRequiredMembers]
-    public LoginOneUserByEmailAddressCommand(LoginOneUserByEmailAddressCommandArgs args) {
+    public LoginOneUserByEmailAddressAndPasswordCommand(LoginOneUserByEmailAddressAndPasswordCommandArgs args) {
         this.EmailAddress = args.EmailAddress;
         this.Password = args.Password;
     }

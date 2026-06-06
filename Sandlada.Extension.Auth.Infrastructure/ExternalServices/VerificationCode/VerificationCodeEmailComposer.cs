@@ -37,6 +37,7 @@ public static class VerificationCodeEmailComposer {
     private static string GetSubject(VerificationCodePurpose purpose) {
         return purpose switch {
             VerificationCodePurpose.EmailRebind => "Sandlada Extension Auth Email Rebind Verification Code",
+            VerificationCodePurpose.Login => "Sandlada Extension Auth Login Verification Code",
             _ => "Sandlada Extension Auth Registration Verification Code",
         };
     }
@@ -54,18 +55,21 @@ public static class VerificationCodeEmailComposer {
     private static string GetPurposeLine(VerificationCodePurpose purpose) {
         return purpose switch {
             VerificationCodePurpose.EmailRebind => "You requested to update the email address on your Sandlada Extension Auth account.",
+            VerificationCodePurpose.Login => "You requested a Sandlada Extension Auth login verification code.",
             VerificationCodePurpose.Registration => "You requested a Sandlada Extension Auth registration verification code.",
         };
     }
     private static string GetMainTitle(VerificationCodePurpose purpose) {
         return purpose switch {
             VerificationCodePurpose.EmailRebind => "Sandlada Extension Auth Email Rebind Verification Code",
+            VerificationCodePurpose.Login => "Sandlada Extension Auth Login Verification Code",
             VerificationCodePurpose.Registration => "Sandlada Extension Auth Registration Verification Code",
         };
     }
     private static string GetMainDesc(VerificationCodePurpose purpose) {
         return purpose switch {
             VerificationCodePurpose.EmailRebind => "Use the following verification code to update the email address on your Sandlada Extension Auth account.",
+            VerificationCodePurpose.Login => "Use the following verification code to log in to your account.",
             VerificationCodePurpose.Registration => "Use the following verification code to complete your registration.",
         };
     }

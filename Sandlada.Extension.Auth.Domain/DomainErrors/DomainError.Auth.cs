@@ -15,6 +15,7 @@ public sealed partial record DomainError {
         public static readonly DomainError VerificationCodeAlreadyUsed = new("Auth.VerificationCodeAlreadyUsed", "The verification code has already been used.");
         public static readonly DomainError EmailAddressUnchanged = new("Auth.EmailAddressUnchanged", "The new email address must be different from the current email address.");
         public static readonly DomainError EmailRebindRequestLimitExceeded = new("Auth.EmailRebindRequestLimitExceeded", "The same user can only submit 10 email rebind requests per UTC day.");
+        public static readonly DomainError LoginRequestLimitExceeded = new("Auth.LoginRequestLimitExceeded", "The same email address can only submit 10 login requests per UTC day.");
         public static readonly DomainError EmailRebindVerificationNotFound = new("Auth.EmailRebindVerificationNotFound", "The email rebind verification challenge was not found.");
         public static readonly DomainError SessionNotFound = new("Auth.SessionNotFound", "The session was not found.");
     }

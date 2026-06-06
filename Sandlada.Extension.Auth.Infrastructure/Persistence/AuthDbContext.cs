@@ -9,6 +9,7 @@ public sealed class AuthDbContext : DbContext, IApplicationUnitOfWork {
     public DbSet<UserProfileEntity> UserProfiles => this.Set<UserProfileEntity>();
     public DbSet<RegistrationVerificationEntity> RegistrationVerifications => this.Set<RegistrationVerificationEntity>();
     public DbSet<EmailRebindVerificationEntity> EmailRebindVerifications => this.Set<EmailRebindVerificationEntity>();
+    public DbSet<LoginVerificationEntity> LoginVerifications => this.Set<LoginVerificationEntity>();
     public DbSet<AuthSessionEntity> AuthSessions => this.Set<AuthSessionEntity>();
 
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) {

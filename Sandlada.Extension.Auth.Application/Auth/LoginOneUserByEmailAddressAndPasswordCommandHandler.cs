@@ -6,14 +6,14 @@ using MediatR;
 
 namespace Sandlada.Extension.Auth.Application.Auth;
 
-public sealed class LoginOneUserByEmailAddressCommandHandler(
+public sealed class LoginOneUserByEmailAddressAndPasswordCommandHandler(
     IUserRepository userRepository,
     ISecretHashService secretHashService,
     FirstLoginUserProfileInitializer firstLoginUserProfileInitializer,
     IApplicationUnitOfWork unitOfWork
-) : IRequestHandler<LoginOneUserByEmailAddressCommand, IResult<AuthenticatedUserResponse>> {
+) : IRequestHandler<LoginOneUserByEmailAddressAndPasswordCommand, IResult<AuthenticatedUserResponse>> {
 
-    public async Task<IResult<AuthenticatedUserResponse>> Handle(LoginOneUserByEmailAddressCommand request, CancellationToken cancellationToken) {
+    public async Task<IResult<AuthenticatedUserResponse>> Handle(LoginOneUserByEmailAddressAndPasswordCommand request, CancellationToken cancellationToken) {
         var emailAddressResult = EmailAddress.From(request.EmailAddress);
         if (emailAddressResult.IsFailure) return Result.Failure<AuthenticatedUserResponse>(DomainError.Auth.InvalidCredentials);
         if (string.IsNullOrWhiteSpace(request.Password)) return Result.Failure<AuthenticatedUserResponse>(DomainError.Auth.InvalidCredentials);

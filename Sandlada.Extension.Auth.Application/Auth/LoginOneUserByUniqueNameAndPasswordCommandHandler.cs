@@ -5,14 +5,14 @@ using MediatR;
 
 namespace Sandlada.Extension.Auth.Application.Auth;
 
-public sealed class LoginOneUserByUniqueNameCommandHandler(
+public sealed class LoginOneUserByUniqueNameAndPasswordCommandHandler(
     IUserRepository userRepository,
     ISecretHashService secretHashService,
     FirstLoginUserProfileInitializer firstLoginUserProfileInitializer,
     IApplicationUnitOfWork unitOfWork
-) : IRequestHandler<LoginOneUserByUniqueNameCommand, IResult<AuthenticatedUserResponse>> {
+) : IRequestHandler<LoginOneUserByUniqueNameAndPasswordCommand, IResult<AuthenticatedUserResponse>> {
 
-    public async Task<IResult<AuthenticatedUserResponse>> Handle(LoginOneUserByUniqueNameCommand request, CancellationToken cancellationToken) {
+    public async Task<IResult<AuthenticatedUserResponse>> Handle(LoginOneUserByUniqueNameAndPasswordCommand request, CancellationToken cancellationToken) {
         if (string.IsNullOrWhiteSpace(request.UniqueName) || string.IsNullOrWhiteSpace(request.Password)) {
             return Result.Failure<AuthenticatedUserResponse>(DomainError.Auth.InvalidCredentials);
         }

@@ -26,6 +26,7 @@ public static class DependencyInjection {
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         services.AddScoped<IRegistrationVerificationRepository, RegistrationVerificationRepository>();
         services.AddScoped<IEmailRebindVerificationRepository, EmailRebindVerificationRepository>();
+        services.AddScoped<ILoginVerificationRepository, LoginVerificationRepository>();
         services.AddScoped<IAuthSessionRepository, AuthSessionRepository>();
         services.AddScoped<IApplicationUnitOfWork>(serviceProvider => serviceProvider.GetRequiredService<AuthDbContext>());
 

@@ -30,13 +30,25 @@ public static class AuthEndpoints {
             .RequireAuthorization()
             .WithName("ConfirmEmailRebind");
 
-        group.MapPost("/LoginByEmailAddress", LoginByEmailAddress)
+        group.MapPost("/LoginByEmailAddressAndPassword", LoginByEmailAddressAndPassword)
             .AllowAnonymous()
-            .WithName("LoginByEmailAddress");
+            .WithName("LoginByEmailAddressAndPassword");
 
-        group.MapPost("/LoginByUniqueName", LoginByUniqueName)
+        group.MapPost("/LoginByUniqueNameAndPassword", LoginByUniqueNameAndPassword)
             .AllowAnonymous()
-            .WithName("LoginByUniqueName");
+            .WithName("LoginByUniqueNameAndPassword");
+
+        group.MapPost("/RequestLoginVerificationCode", RequestLoginVerificationCode)
+            .AllowAnonymous()
+            .WithName("RequestLoginVerificationCode");
+
+        group.MapPost("/LoginByEmailAddressAndVerificationCode", LoginByEmailAddressAndVerificationCode)
+            .AllowAnonymous()
+            .WithName("LoginByEmailAddressAndVerificationCode");
+
+        group.MapPost("/LoginByUniqueNameAndVerificationCode", LoginByUniqueNameAndVerificationCode)
+            .AllowAnonymous()
+            .WithName("LoginByUniqueNameAndVerificationCode");
 
         group.MapPost("/Logout", Logout)
             .RequireAuthorization()
@@ -114,13 +126,13 @@ public static class AuthEndpoints {
         return ToHttpResult(result);
     }
 
-    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByEmailAddress(
-        [FromBody] LoginOneUserByEmailAddressCommandArgs requestArgs,
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByEmailAddressAndPassword(
+        [FromBody] LoginOneUserByEmailAddressAndPasswordCommandArgs requestArgs,
         ISender sender,
         HttpContext httpContext,
         CancellationToken cancellationToken
     ) {
-        var request = new LoginOneUserByEmailAddressCommand(requestArgs);
+        var request = new LoginOneUserByEmailAddressAndPasswordCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
             await SignInAsync(httpContext, result.Value);
@@ -128,13 +140,51 @@ public static class AuthEndpoints {
         return ToHttpResult(result);
     }
 
-    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByUniqueName(
-        [FromBody] LoginOneUserByUniqueNameCommandArgs requestArgs,
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByUniqueNameAndPassword(
+        [FromBody] LoginOneUserByUniqueNameAndPasswordCommandArgs requestArgs,
         ISender sender,
         HttpContext httpContext,
         CancellationToken cancellationToken
     ) {
-        var request = new LoginOneUserByUniqueNameCommand(requestArgs);
+        var request = new LoginOneUserByUniqueNameAndPasswordCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        if (result.IsSuccess) {
+            await SignInAsync(httpContext, result.Value);
+        }
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> RequestLoginVerificationCode(
+        [FromBody] RequestLoginVerificationCodeCommandArgs requestArgs,
+        ISender sender,
+        CancellationToken cancellationToken
+    ) {
+        var request = new RequestLoginVerificationCodeCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByEmailAddressAndVerificationCode(
+        [FromBody] LoginOneUserByEmailAddressAndVerificationCodeCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        var request = new LoginOneUserByEmailAddressAndVerificationCodeCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        if (result.IsSuccess) {
+            await SignInAsync(httpContext, result.Value);
+        }
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByUniqueNameAndVerificationCode(
+        [FromBody] LoginOneUserByUniqueNameAndVerificationCodeCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        var request = new LoginOneUserByUniqueNameAndVerificationCodeCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
             await SignInAsync(httpContext, result.Value);
@@ -243,6 +293,7 @@ public static class AuthEndpoints {
         if (error == DomainError.User.NotFound) return TypedResults.NotFound(error);
         if (error == DomainError.Auth.SessionNotFound) return TypedResults.NotFound(error);
         if (error == DomainError.Auth.EmailRebindVerificationNotFound) return TypedResults.NotFound(error);
+        if (error == DomainError.Auth.VerificationCodeNotFound) return TypedResults.NotFound(error);
         return TypedResults.BadRequest(error);
     }
 }
