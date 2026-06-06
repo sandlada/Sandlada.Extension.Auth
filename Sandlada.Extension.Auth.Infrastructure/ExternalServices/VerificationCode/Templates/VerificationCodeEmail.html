@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{SUBJECT}}</title>
+
+    <style>
+        :root{
+            --md-sys-color-primary-key-color        : #2f865c;
+            --md-sys-color-secondary-key-color      : #5e7e6a;
+            --md-sys-color-tertiary-key-color       : #a1daff;
+            --md-sys-color-error-key-color          : #de3730;
+            --md-sys-color-neutral-key-color        : #747874;
+            --md-sys-color-neutral-variant-key-color: #000000;
+            --md-sys-color-background                : light-dark(#f7faf4, #101411);
+            --md-sys-color-error                     : light-dark(#ba1a1a, #ffb4ab);
+            --md-sys-color-error-container           : light-dark(#ffdad6, #93000a);
+            --md-sys-color-error-dim                 : light-dark(#a80710, #ff554a);
+            --md-sys-color-inverse-on-surface        : light-dark(#eef2ec, #2d322e);
+            --md-sys-color-inverse-primary           : light-dark(#82d8a8, #076c45);
+            --md-sys-color-inverse-surface           : light-dark(#2d322e, #dfe4de);
+            --md-sys-color-on-background             : light-dark(#181d19, #dfe4de);
+            --md-sys-color-on-error                  : light-dark(#ffffff, #690005);
+            --md-sys-color-on-error-container        : light-dark(#93000a, #ffdad6);
+            --md-sys-color-on-primary                : light-dark(#ffffff, #003822);
+            --md-sys-color-on-primary-container      : light-dark(#006842, #006842);
+            --md-sys-color-on-primary-fixed          : light-dark(#002112, #002112);
+            --md-sys-color-on-primary-fixed-variant  : light-dark(#005233, #005233);
+            --md-sys-color-on-secondary              : light-dark(#ffffff, #183626);
+            --md-sys-color-on-secondary-container    : light-dark(#4c6b58, #9bbda7);
+            --md-sys-color-on-secondary-fixed        : light-dark(#022112, #022112);
+            --md-sys-color-on-secondary-fixed-variant: light-dark(#2f4d3b, #2f4d3b);
+            --md-sys-color-on-surface                : light-dark(#181d19, #dfe4de);
+            --md-sys-color-on-surface-variant        : light-dark(#474747, #c6c6c6);
+            --md-sys-color-on-tertiary               : light-dark(#ffffff, #00344b);
+            --md-sys-color-on-tertiary-container     : light-dark(#216080, #216080);
+            --md-sys-color-on-tertiary-fixed         : light-dark(#001e2d, #001e2d);
+            --md-sys-color-on-tertiary-fixed-variant : light-dark(#004c6a, #004c6a);
+            --md-sys-color-outline                   : light-dark(#777777, #919191);
+            --md-sys-color-outline-variant           : light-dark(#c6c6c6, #474747);
+            --md-sys-color-primary                   : light-dark(#076c45, #b9ffd4);
+            --md-sys-color-primary-container         : light-dark(#8fe5b4, #8fe5b4);
+            --md-sys-color-primary-dim               : light-dark(#005f3b, #a1f8c5);
+            --md-sys-color-primary-fixed             : light-dark(#9ef5c3, #9ef5c3);
+            --md-sys-color-primary-fixed-dim         : light-dark(#82d8a8, #82d8a8);
+            --md-sys-color-scrim                     : light-dark(#000000, #000000);
+            --md-sys-color-secondary                 : light-dark(#466552, #accfb8);
+            --md-sys-color-secondary-container       : light-dark(#c8ebd3, #2f4d3b);
+            --md-sys-color-secondary-dim             : light-dark(#3a5947, #c8ebd3);
+            --md-sys-color-secondary-fixed           : light-dark(#c8ebd3, #c8ebd3);
+            --md-sys-color-secondary-fixed-dim       : light-dark(#accfb8, #accfb8);
+            --md-sys-color-shadow                    : light-dark(#000000, #000000);
+            --md-sys-color-surface                   : light-dark(#f7faf4, #101411);
+            --md-sys-color-surface-bright            : light-dark(#f7faf4, #363a36);
+            --md-sys-color-surface-container         : light-dark(#ebefe9, #1c211d);
+            --md-sys-color-surface-container-high    : light-dark(#e5e9e3, #262b27);
+            --md-sys-color-surface-container-highest : light-dark(#dfe4de, #313632);
+            --md-sys-color-surface-container-low     : light-dark(#f1f5ef, #181d19);
+            --md-sys-color-surface-container-lowest  : light-dark(#ffffff, #0b0f0c);
+            --md-sys-color-surface-dim               : light-dark(#d7dbd5, #101411);
+            --md-sys-color-surface-tint              : light-dark(#076c45, #82d8a8);
+            --md-sys-color-surface-variant           : light-dark(#e2e2e2, #474747);
+            --md-sys-color-tertiary                  : light-dark(#266484, #e1f2ff);
+            --md-sys-color-tertiary-container        : light-dark(#a1daff, #a1daff);
+            --md-sys-color-tertiary-dim              : light-dark(#155878, #a0d9fe);
+            --md-sys-color-tertiary-fixed            : light-dark(#c5e7ff, #c5e7ff);
+            --md-sys-color-tertiary-fixed-dim        : light-dark(#95cef2, #95cef2);
+        }
+        :root {
+            color-scheme: light;
+            font-family: 'JetBrains Mono', 'Noto Sans Mono', 'Noto Sans', 'Roboto', 'Noto Sans TC', 'Noto Sans SC', 'Segoe UI',Arial,Helvetica,sans-serif;
+            background-color: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                color-scheme: dark;
+            }
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0px;
+        }
+
+        .page-container {
+            border-radius: 6px;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr auto;
+            background-color: var(--md-sys-color-surface);
+            overflow: auto;
+            max-width: 840px;
+            margin-left: auto;
+            margin-right: auto;
+
+            @media (240px < width <= 320px) {
+                & {
+                    border-radius: 8px;
+                    margin: 6px 6px 0px;
+                }
+            }
+            @media (320px < width <= 480px) {
+                & {
+                    border-radius: 10px;
+                    margin: 12px 12px 0px;
+                }
+            }
+            @media (480px < width <= 600px) {
+                & {
+                    border-radius: 24px;
+                    margin: 24px 24px 0px;
+                }
+            }
+            @media (600px < width <= 960px) {
+                & {
+                    border-radius: 24px;
+                    margin: 24px 32px 0px;
+                }
+            }
+            @media (960px < width) {
+                & {
+                    border-radius: 24px;
+                    margin: 24px auto 0px;
+                }
+            }
+        }
+
+        .page-header {
+            grid-row: 1/2;
+            grid-column: 1/-1;
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+
+            & .label {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--md-sys-color-on-surface-variant);
+                padding-inline: 16px;
+            }
+        }
+
+        .page-content {
+            grid-row: 2/3;
+            grid-column: 1/-1;
+            padding-inline: 6px;
+            padding-block: 6px;
+
+            @media (240px < width <= 320px) {
+                & {
+                    padding-inline: 8px;
+                    padding-block: 8px;
+                }
+            }
+            @media (320px < width <= 480px) {
+                & {
+                    padding-inline: 10px;
+                    padding-block: 10px;
+                }
+            }
+            @media (480px < width) {
+                & {
+                    padding-inline: 16px;
+                    padding-block: 16px;
+                }
+            }
+
+            & :is(.main-title,.main-desc,.main-purpose) {
+                display: block;
+            }
+            & .main-title {
+                font-size: 12px;
+                font-weight: 700;
+                margin-block-end: 12px;
+                color: var(--md-sys-color-on-surface);
+
+                @media (240px < width <= 320px) {
+                    & {
+                        font-size: 16px;
+                    }
+                }
+                @media (320px < width <= 480px) {
+                    & {
+                        font-size: 18px;
+                    }
+                }
+                @media (480px < width) {
+                    & {
+                        font-size: 24px;
+                    }
+                }
+            }
+            & .main-purpose {
+                font-size: 6px;
+                margin-block-end: 24px;
+                color: var(--md-sys-color-on-surface);
+            }
+            & .main-desc {
+                font-size: 6px;
+                color: var(--md-sys-color-on-surface);
+            }
+            & :is(.main-purpose, .main-desc) {
+                @media (240px < width <= 320px) {
+                    & {
+                        font-size: 8px;
+                    }
+                }
+                @media (320px < width <= 480px) {
+                    & {
+                        font-size: 10px;
+                    }
+                }
+                @media (480px < width) {
+                    & {
+                        font-size: 12px;
+                    }
+                }
+            }
+
+            & .verification-code-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                border-radius: 12px;
+                padding-block: 8px;
+                margin-block: 32px;
+                background: var(--md-sys-color-primary-container);
+                box-sizing: border-box;
+
+                & .label {
+                    font-size: 8px;
+                    text-transform: uppercase;
+                    color: var(--md-sys-color-on-primary-container);
+                }
+                & .code {
+                    font-size: 8px;
+                    font-weight: 900;
+                    letter-spacing: 0px;
+                    color: var(--md-sys-color-on-primary-container);
+                }
+
+                @media (240px < width <= 320px) {
+                    & {
+                        padding-block: 12px;
+                        border-radius: 16px;
+                    }
+                    & .label {
+                        font-size: 12px;
+                    }
+                    & .code {
+                        font-size: 14px;
+                        letter-spacing: 0px;
+                    }
+                }
+                @media (320px < width <= 480px) {
+                    & {
+                        padding-block: 16px;
+                        border-radius: 20px;
+                    }
+                    & .label {
+                        font-size: 16px;
+                    }
+                    & .code {
+                        font-size: 18px;
+                        letter-spacing: 2px;
+                    }
+                }
+                @media (480px < width <= 600px) {
+                    & {
+                        padding-block: 20px;
+                        border-radius: 24px;
+                    }
+                    & .label {
+                        font-size: 18px;
+                    }
+                    & .code {
+                        font-size: 22px;
+                        letter-spacing: 4px;
+                    }
+                }
+                @media (600px < width <= 840px) {
+                    & {
+                        padding-block: 20px;
+                        border-radius: 24px;
+                    }
+                    & .label {
+                        font-size: 18px;
+                    }
+                    & .code {
+                        font-size: 24px;
+                        letter-spacing: 6px;
+                    }
+                }
+                @media (840px < width) {
+                    & {
+                        padding-block: 24px;
+                        border-radius: 24px;
+                    }
+                    & .label {
+                        font-size: 16px;
+                    }
+                    & .code {
+                        font-size: 48px;
+                        letter-spacing: 6px;
+                    }
+                }
+            }
+
+        }
+
+        .notice,
+        .expiration {
+            display: block;
+            font-size: 6px;
+            margin-block: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+
+            @media (240px < width <= 320px) {
+                & {
+                    font-size: 8px;
+                }
+            }
+            @media (320px < width <= 480px) {
+                & {
+                    font-size: 10px;
+                }
+            }
+            @media (480px < width) {
+                & {
+                    font-size: 12px;
+                }
+            }
+        }
+    </style>
+</head>
+<body >
+
+    <div class="page-container">
+
+        <header class="page-header">
+            <span class="label">ChatWithAI</span>
+        </header>
+
+        <main class="page-content">
+            <span class="main-title">{{MAIN_TITLE}}</span>
+            <span class="main-purpose">{{PURPOSE}}</span>
+            <span class="main-desc">{{MAIN_DESC}}</span>
+
+            <div class="verification-code-box">
+                <span class="label">Your Code</span>
+                <span class="code">{{VERIFICATION_CODE}}</span>
+            </div>
+
+            <span class="expiration">This code expires in {{EXPIRATION_MINUTES}} minutes.</span>
+            <span class="notice">If you did not request this email, you can ignore it. If you need another code, request a new one from ChatWithAI.</span>
+
+        </main>
+    </div>
+
+
+</body>
+</html>

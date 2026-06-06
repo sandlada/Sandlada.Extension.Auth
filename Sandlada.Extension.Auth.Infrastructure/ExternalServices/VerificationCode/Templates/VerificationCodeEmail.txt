@@ -1,0 +1,13 @@
+=====================================
+VERIFICATION CODE
+=====================================
+
+Hello,
+
+{{PURPOSE}}
+
+Verification code: {{VERIFICATION_CODE}}
+
+This code expires in {{EXPIRATION_MINUTES}} minutes.
+
+If you did not request this email, you can ignore it. If you need another code, request a new one from ChatWithAI.

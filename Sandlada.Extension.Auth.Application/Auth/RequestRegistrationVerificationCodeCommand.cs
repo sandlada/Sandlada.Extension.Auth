@@ -1,0 +1,16 @@
+using Sandlada.Extension.Auth.Domain.Commons;
+using MediatR;
+using System.Diagnostics.CodeAnalysis;
+
+namespace Sandlada.Extension.Auth.Application.Auth;
+
+public sealed record RequestRegistrationVerificationCodeCommand : IRequest<IResult<RequestRegistrationVerificationCodeCommandResponse>> {
+    public required string EmailAddress { get; init; }
+    public required string Password { get; init; }
+
+    [SetsRequiredMembers]
+    public RequestRegistrationVerificationCodeCommand(RequestRegistrationVerificationCodeCommandArgs args) {
+        this.EmailAddress = args.EmailAddress;
+        this.Password = args.Password;
+    }
+}

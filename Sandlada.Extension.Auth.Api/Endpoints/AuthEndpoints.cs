@@ -1,0 +1,248 @@
+using System.Security.Claims;
+using MediatR;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Sandlada.Extension.Auth.Application.Auth;
+using Sandlada.Extension.Auth.Domain.Commons;
+using Sandlada.Extension.Auth.Domain.ValueObjects;
+using Microsoft.AspNetCore.Mvc;
+
+// Resolve ambiguity between Domain.IResult and AspNetCore.Http.IResult
+using IResult = Microsoft.AspNetCore.Http.IResult;
+
+namespace Sandlada.Extension.Auth.Api.Endpoints;
+
+public static class AuthEndpoints {
+    public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder group) {
+        group.MapPost("/RequestRegistrationVerificationCode", RequestRegistrationVerificationCode)
+            .AllowAnonymous()
+            .WithName("RequestRegistrationVerificationCode");
+
+        group.MapPost("/Register", Register)
+            .AllowAnonymous()
+            .WithName("Register");
+
+        group.MapPost("/RequestEmailRebindVerificationCode", RequestEmailRebindVerificationCode)
+            .RequireAuthorization()
+            .WithName("RequestEmailRebindVerificationCode");
+
+        group.MapPost("/ConfirmEmailRebind", ConfirmEmailRebind)
+            .RequireAuthorization()
+            .WithName("ConfirmEmailRebind");
+
+        group.MapPost("/LoginByEmailAddress", LoginByEmailAddress)
+            .AllowAnonymous()
+            .WithName("LoginByEmailAddress");
+
+        group.MapPost("/LoginByUniqueName", LoginByUniqueName)
+            .AllowAnonymous()
+            .WithName("LoginByUniqueName");
+
+        group.MapPost("/Logout", Logout)
+            .RequireAuthorization()
+            .WithName("Logout");
+
+        group.MapPost("/LogoutAllSessions", LogoutAllSessions)
+            .RequireAuthorization()
+            .WithName("LogoutAllSessions");
+
+        group.MapPost("/KickOneSession/{sessionId}", KickOneSession)
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.AdministratorString))
+            .WithName("KickOneSession");
+
+        group.MapPost("/KickManySessionsByUserId/{userId:guid}", KickManySessionsByUserId)
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.AdministratorString))
+            .WithName("KickManySessionsByUserId");
+
+        return group;
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> RequestRegistrationVerificationCode(
+        [FromBody] RequestRegistrationVerificationCodeCommandArgs requestArgs,
+        ISender sender,
+        CancellationToken cancellationToken
+    ) {
+        var request = new RequestRegistrationVerificationCodeCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> Register(
+        [FromBody] RegisterOneUserCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        var request = new RegisterOneUserCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        if (result.IsSuccess) {
+            await SignInAsync(httpContext, result.Value);
+        }
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> RequestEmailRebindVerificationCode(
+        [FromBody] RequestEmailRebindVerificationCodeCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+            return TypedResults.Unauthorized();
+        }
+
+        var request = new RequestEmailRebindVerificationCodeCommand(userId, requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> ConfirmEmailRebind(
+        [FromBody] ConfirmEmailRebindCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+            return TypedResults.Unauthorized();
+        }
+
+        var request = new ConfirmEmailRebindCommand(userId, requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        if (result.IsSuccess) {
+            await SignInAsync(httpContext, result.Value);
+        }
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByEmailAddress(
+        [FromBody] LoginOneUserByEmailAddressCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        var request = new LoginOneUserByEmailAddressCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        if (result.IsSuccess) {
+            await SignInAsync(httpContext, result.Value);
+        }
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LoginByUniqueName(
+        [FromBody] LoginOneUserByUniqueNameCommandArgs requestArgs,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        var request = new LoginOneUserByUniqueNameCommand(requestArgs);
+        var result = await sender.Send(request, cancellationToken);
+        if (result.IsSuccess) {
+            await SignInAsync(httpContext, result.Value);
+        }
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> Logout(
+        ISender sender,
+        HttpContext httpContext
+    ) {
+        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+            return TypedResults.Unauthorized();
+        }
+
+        var request = new RemoveOneUserSessionCommand(new RemoveOneUserSessionCommandArgs {
+            SessionId = httpContext.Connection.Id,
+        });
+        await sender.Send(request, CancellationToken.None);
+        await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return TypedResults.Ok(Result.Success());
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> LogoutAllSessions(
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    ) {
+        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+            return TypedResults.Unauthorized();
+        }
+
+        var request = new RemoveManyUserSessionsByUserIdCommand(new RemoveManyUserSessionsByUserIdCommandArgs {
+            UserId = userId,
+        });
+        var result = await sender.Send(request, cancellationToken);
+        await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> KickOneSession(
+        string sessionId,
+        ISender sender,
+        CancellationToken cancellationToken
+    ) {
+        var request = new RemoveOneUserSessionCommand(new RemoveOneUserSessionCommandArgs {
+            SessionId = sessionId,
+        });
+        var result = await sender.Send(request, cancellationToken);
+        return ToHttpResult(result);
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> KickManySessionsByUserId(
+        Guid userId,
+        ISender sender,
+        CancellationToken cancellationToken
+    ) {
+        var request = new RemoveManyUserSessionsByUserIdCommand(new RemoveManyUserSessionsByUserIdCommandArgs {
+            UserId = userId,
+        });
+        var result = await sender.Send(request, cancellationToken);
+        return ToHttpResult(result);
+    }
+
+    private static async Task SignInAsync(HttpContext httpContext, AuthenticatedUserResponse user) {
+        var uniqueName = string.IsNullOrWhiteSpace(user.UniqueName) ? null : user.UniqueName;
+        var principalName = uniqueName ?? user.EmailAddress;
+
+        var claims = new List<Claim> {
+            new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new(ClaimTypes.Email, user.EmailAddress),
+            new(ClaimTypes.Name, principalName),
+            new(ClaimTypes.Role, user.Role),
+            new("is_email_verified", user.IsEmailVerified.ToString()),
+        };
+
+        if (uniqueName is not null) {
+            claims.Add(new Claim("unique_name", uniqueName));
+        }
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
+        var principal = new ClaimsPrincipal(identity);
+        var properties = new AuthenticationProperties {
+            AllowRefresh = true,
+            IsPersistent = true,
+            IssuedUtc = DateTimeOffset.UtcNow,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
+        };
+
+        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
+    }
+
+    private static bool TryGetCurrentUserId(HttpContext httpContext, out Guid userId) {
+        var rawUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(rawUserId, out userId);
+    }
+
+    private static IResult ToHttpResult<T>(Sandlada.Extension.Auth.Domain.Commons.IResult<T> result) {
+        if (result.IsSuccess) return TypedResults.Ok(result.Value);
+        return ToFailureResult<T>(result.Error);
+    }
+
+    private static IResult ToFailureResult<T>(DomainError error) {
+        if (error == DomainError.Auth.InvalidCredentials) return TypedResults.Unauthorized();
+        if (error == DomainError.Auth.EmailAddressNotVerified) return TypedResults.Unauthorized();
+        if (error == DomainError.User.NotFound) return TypedResults.NotFound(error);
+        if (error == DomainError.Auth.SessionNotFound) return TypedResults.NotFound(error);
+        if (error == DomainError.Auth.EmailRebindVerificationNotFound) return TypedResults.NotFound(error);
+        return TypedResults.BadRequest(error);
+    }
+}

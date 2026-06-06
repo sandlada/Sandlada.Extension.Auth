@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="Sandlada.Extension.Auth.Api/Sandlada.Extension.Auth.Api.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Application.Tests/Sandlada.Extension.Auth.Application.Tests.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Application/Sandlada.Extension.Auth.Application.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Domain.Tests/Sandlada.Extension.Auth.Domain.Tests.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Domain/Sandlada.Extension.Auth.Domain.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Extension/Sandlada.Extension.Auth.Extension.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Infrastructure.Tests/Sandlada.Extension.Auth.Infrastructure.Tests.csproj" />
+  <Project Path="Sandlada.Extension.Auth.Infrastructure/Sandlada.Extension.Auth.Infrastructure.csproj" />
+</Solution>

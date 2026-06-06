@@ -1,0 +1,38 @@
+@SandladaAuth_HostAddress = https://localhost:7225
+@adminEmail = admin@example.com
+@adminPassword = admin
+@registrationEmail = user@example.com
+@rebindTargetEmail = user2@example.com
+
+# Development auth cookies require HTTPS because CookieSecurePolicy is Always.
+
+### Request a registration verification code
+POST {{SandladaAuth_HostAddress}}/Api/Auth/RequestRegistrationVerificationCode
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{registrationEmail}}",
+	"password": "user"
+}
+
+### Request an email rebind verification code
+POST {{SandladaAuth_HostAddress}}/Api/Auth/RequestEmailRebindVerificationCode
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{rebindTargetEmail}}"
+}
+
+### Login as admin
+POST {{SandladaAuth_HostAddress}}/Api/Auth/LoginByEmailAddress
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{adminEmail}}",
+	"password": "{{adminPassword}}"
+}
+
+###

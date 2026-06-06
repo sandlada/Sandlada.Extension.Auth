@@ -1,0 +1,18 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/lib": true,
+    },
+    "dotnet.codeLens.enableReferencesCodeLens": false,
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "*Command.cs": "${capture}Command.cs, ${capture}CommandArgs.cs, ${capture}CommandHandler.cs, ${capture}CommandResponse.cs",
+        "*Query.cs": "${capture}Query.cs, ${capture}QueryArgs.cs, ${capture}QueryHandler.cs, ${capture}QueryResponse.cs",
+    },
+}
