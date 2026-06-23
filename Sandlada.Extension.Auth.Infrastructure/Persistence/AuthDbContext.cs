@@ -11,6 +11,7 @@ public sealed class AuthDbContext : DbContext, IApplicationUnitOfWork {
     public DbSet<EmailRebindVerificationEntity> EmailRebindVerifications => this.Set<EmailRebindVerificationEntity>();
     public DbSet<LoginVerificationEntity> LoginVerifications => this.Set<LoginVerificationEntity>();
     public DbSet<AuthSessionEntity> AuthSessions => this.Set<AuthSessionEntity>();
+    public DbSet<OAuthClientEntity> OAuthClients => this.Set<OAuthClientEntity>();
 
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) {
     }
@@ -18,6 +19,7 @@ public sealed class AuthDbContext : DbContext, IApplicationUnitOfWork {
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
+        modelBuilder.UseOpenIddict();
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) {

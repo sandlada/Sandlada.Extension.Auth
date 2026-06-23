@@ -5,7 +5,10 @@ using Sandlada.Extension.Auth.Infrastructure;
 using Sandlada.Extension.Auth.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Server.AspNetCore;
+using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,12 @@ builder.Services
                 return Task.CompletedTask;
             },
         };
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => {
+        options.Authority = builder.Configuration["Auth:Authority"];
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters {
+            ValidateAudience = false,
+        };
     });
 
 builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -46,9 +55,45 @@ builder.Services.AddAuthorization(options => {
     options.AddPolicy(UserRole.NormalString, policy => policy.RequireRole(UserRole.NormalString));
 });
 
+builder.Services.AddOpenIddict()
+    .AddCore(coreOptions => {
+        coreOptions.UseEntityFrameworkCore()
+            .UseDbContext<AuthDbContext>();
+    })
+    .AddServer(serverOptions => {
+        serverOptions
+            .SetAuthorizationEndpointUris("/Connect/Authorize")
+            .SetTokenEndpointUris("/Connect/Token")
+            .SetEndSessionEndpointUris("/Connect/Logout");
+
+        serverOptions
+            .RegisterScopes("openid", "profile", "email", "offline_access");
+
+        serverOptions
+            .AllowAuthorizationCodeFlow()
+            .RequireProofKeyForCodeExchange()
+            .AllowRefreshTokenFlow();
+
+        serverOptions
+            .AddDevelopmentEncryptionCertificate()
+            .AddDevelopmentSigningCertificate();
+
+        serverOptions.UseAspNetCore()
+            .EnableAuthorizationEndpointPassthrough()
+            .EnableTokenEndpointPassthrough()
+            .EnableEndSessionEndpointPassthrough()
+            .DisableTransportSecurityRequirement();
+    })
+    .AddValidation(validationOptions => {
+        validationOptions.UseLocalServer();
+        validationOptions.UseAspNetCore();
+    });
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options => {
-    options.AddPolicy("AllowAngular4200", policy => {
-        policy.WithOrigins("http://localhost:4200")
+    options.AddPolicy("AllowClients", policy => {
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -57,7 +102,7 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-app.UseCors("AllowAngular4200");
+app.UseCors("AllowClients");
 
 using (var scope = app.Services.CreateScope()) {
     if (app.Environment.IsDevelopment()) {
@@ -83,5 +128,7 @@ app.UseAuthorization();
 app.MapGroup("/Api/Auth").MapAuthEndpoints();
 app.MapGroup("/Api/User").MapUserEndpoints();
 app.MapGroup("/Api/UserProfile").MapUserProfileEndpoints();
+app.MapGroup("/Api/OAuthClient").MapOAuthClientEndpoints();
+app.MapOpenIddictEndpoints();
 
 app.Run();

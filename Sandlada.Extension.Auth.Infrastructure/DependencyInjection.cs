@@ -28,6 +28,7 @@ public static class DependencyInjection {
         services.AddScoped<IEmailRebindVerificationRepository, EmailRebindVerificationRepository>();
         services.AddScoped<ILoginVerificationRepository, LoginVerificationRepository>();
         services.AddScoped<IAuthSessionRepository, AuthSessionRepository>();
+        services.AddScoped<IOAuthClientRepository, OAuthClientRepository>();
         services.AddScoped<IApplicationUnitOfWork>(serviceProvider => serviceProvider.GetRequiredService<AuthDbContext>());
 
         services.AddSingleton<ISecretHashService, SecretHashService>();

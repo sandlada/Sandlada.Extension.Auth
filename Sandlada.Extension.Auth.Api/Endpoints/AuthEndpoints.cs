@@ -286,7 +286,6 @@ public static class AuthEndpoints {
         if (result.IsSuccess) return TypedResults.Ok(result.Value);
         return ToFailureResult<T>(result.Error);
     }
-
     private static IResult ToFailureResult<T>(DomainError error) {
         if (error == DomainError.Auth.InvalidCredentials) return TypedResults.Unauthorized();
         if (error == DomainError.Auth.EmailAddressNotVerified) return TypedResults.Unauthorized();
