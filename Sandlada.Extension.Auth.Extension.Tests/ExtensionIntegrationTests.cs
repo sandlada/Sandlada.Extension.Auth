@@ -5,11 +5,15 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Sandlada.Extension.Auth.Extension.Tests;
 
+[CollectionDefinition("Extension Integration Tests", DisableParallelization = true)]
+public sealed class ExtensionIntegrationTestsCollectionDefinition;
+
 /// <summary>
 /// Integration tests that exercise the Extension NuGet package from an external consumer's perspective.
 /// Uses WebApplicationFactory against the Api's Program, with configuration overrides to simulate
 /// a minimal consumer environment.
 /// </summary>
+[Collection("Extension Integration Tests")]
 public sealed class ExtensionIntegrationTests : IClassFixture<WebApplicationFactory<Program>> {
     private readonly WebApplicationFactory<Program> factory;
 

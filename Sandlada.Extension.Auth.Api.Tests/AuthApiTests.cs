@@ -5,6 +5,10 @@ using Microsoft.Extensions.Hosting;
 
 namespace Sandlada.Extension.Auth.Api.Tests;
 
+[CollectionDefinition("Auth API Tests", DisableParallelization = true)]
+public sealed class AuthApiTestsCollectionDefinition;
+
+[Collection("Auth API Tests")]
 public sealed class AuthApiTests : IClassFixture<WebApplicationFactory<Program>> {
     private readonly WebApplicationFactory<Program> factory;
 

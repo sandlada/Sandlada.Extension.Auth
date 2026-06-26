@@ -89,6 +89,44 @@ public sealed class Mutation
     }
 
     /// <summary>
+    /// Login by email + verification code (anonymous). Performs cookie sign-in on success.
+    /// </summary>
+    public async Task<AuthenticatedUserResponse?> LoginByEmailAddressAndVerificationCode(
+        LoginOneUserByEmailAddressAndVerificationCodeCommandArgs input,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var cmd = new LoginOneUserByEmailAddressAndVerificationCodeCommand(input);
+        var result = await sender.Send(cmd, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
+            return result.Value;
+        }
+        throw GraphQLError(result.Error);
+    }
+
+    /// <summary>
+    /// Login by unique name + verification code (anonymous). Performs cookie sign-in on success.
+    /// </summary>
+    public async Task<AuthenticatedUserResponse?> LoginByUniqueNameAndVerificationCode(
+        LoginOneUserByUniqueNameAndVerificationCodeCommandArgs input,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var cmd = new LoginOneUserByUniqueNameAndVerificationCodeCommand(input);
+        var result = await sender.Send(cmd, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
+            return result.Value;
+        }
+        throw GraphQLError(result.Error);
+    }
+
+    /// <summary>
     /// Request a login verification code (anon).
     /// </summary>
     public async Task<RequestLoginVerificationCodeCommandResponse?> RequestLoginVerificationCode(
@@ -138,6 +176,45 @@ public sealed class Mutation
     }
 
     /// <summary>
+    /// Request email rebind verification code (auth required).
+    /// </summary>
+    public async Task<RequestEmailRebindVerificationCodeCommandResponse?> RequestEmailRebindVerificationCode(
+        RequestEmailRebindVerificationCodeCommandArgs input,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
+            throw new GraphQLException("Unauthorized");
+
+        var cmd = new RequestEmailRebindVerificationCodeCommand(userId, input);
+        var result = await sender.Send(cmd, cancellationToken);
+        return result.IsSuccess ? result.Value : throw GraphQLError(result.Error);
+    }
+
+    /// <summary>
+    /// Confirm email rebind (auth required). Performs cookie sign-in on success.
+    /// </summary>
+    public async Task<AuthenticatedUserResponse?> ConfirmEmailRebind(
+        ConfirmEmailRebindCommandArgs input,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
+            throw new GraphQLException("Unauthorized");
+
+        var cmd = new ConfirmEmailRebindCommand(userId, input);
+        var result = await sender.Send(cmd, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
+            return result.Value;
+        }
+        throw GraphQLError(result.Error);
+    }
+
+    /// <summary>
     /// Insert current user profile (auth).
     /// </summary>
     public async Task<UserProfileResponse?> InsertCurrentUserProfile(
@@ -168,6 +245,41 @@ public sealed class Mutation
             throw new GraphQLException("Unauthorized");
 
         var cmd = new UpdateOneUserProfileCommand(userId, input);
+        var result = await sender.Send(cmd, cancellationToken);
+        if (result.IsSuccess) return result.Value;
+        throw GraphQLError(result.Error);
+    }
+
+    /// <summary>
+    /// Insert or update current user profile (auth). Upserts the profile.
+    /// </summary>
+    public async Task<UserProfileResponse?> InsertOrUpdateCurrentUserProfile(
+        InsertOrUpdateOneUserProfileCommandArgs input,
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
+            throw new GraphQLException("Unauthorized");
+
+        var cmd = new InsertOrUpdateOneUserProfileCommand(userId, input);
+        var result = await sender.Send(cmd, cancellationToken);
+        if (result.IsSuccess) return result.Value;
+        throw GraphQLError(result.Error);
+    }
+
+    /// <summary>
+    /// Reset current user profile to defaults (auth).
+    /// </summary>
+    public async Task<UserProfileResponse?> ResetOneCurrentUserProfile(
+        ISender sender,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
+            throw new GraphQLException("Unauthorized");
+
+        var cmd = new ResetOneUserProfileCommand(new ResetOneUserProfileCommandArgs { UserId = userId });
         var result = await sender.Send(cmd, cancellationToken);
         if (result.IsSuccess) return result.Value;
         throw GraphQLError(result.Error);
@@ -220,7 +332,7 @@ public sealed class Mutation
         return new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(error.ToString())
-                .SetCode(error.GetType().Name)
+                .SetCode(error.Code)
                 .Build());
     }
 }

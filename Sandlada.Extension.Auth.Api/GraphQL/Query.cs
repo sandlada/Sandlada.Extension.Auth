@@ -25,10 +25,7 @@ public sealed class Query
         CancellationToken cancellationToken)
     {
         if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
-        {
-            // HotChocolate will turn this into an auth error via the Authorize attribute already
-            return null;
-        }
+            throw new GraphQLException("Unauthorized");
 
         var query = new FindOneUserByIdQuery(new FindOneUserByIdQueryArgs { UserId = userId });
         var result = await sender.Send(query, cancellationToken);
@@ -44,7 +41,7 @@ public sealed class Query
         CancellationToken cancellationToken)
     {
         if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
-            return null;
+            throw new GraphQLException("Unauthorized");
 
         var q = new FindOneUserProfileByUserIdQuery(new FindOneUserProfileByUserIdQueryArgs { UserId = userId });
         var result = await sender.Send(q, cancellationToken);
@@ -104,7 +101,7 @@ public sealed class Query
         CancellationToken cancellationToken)
     {
         if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId))
-            return null;
+            throw new GraphQLException("Unauthorized");
 
         var query = new FindOneCurrentUserUserStatusQuery(userId);
         var result = await sender.Send(query, cancellationToken);
