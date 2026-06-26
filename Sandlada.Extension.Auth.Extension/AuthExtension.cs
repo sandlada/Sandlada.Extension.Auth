@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Sandlada.Extension.Auth.Api.Endpoints;
+using Sandlada.Extension.Auth.Api.GraphQL;
 using Sandlada.Extension.Auth.Application;
 using Sandlada.Extension.Auth.Domain.ValueObjects;
 using Sandlada.Extension.Auth.Infrastructure;
@@ -104,6 +105,29 @@ public static class AuthExtension {
         app.MapGroup("/Api/Auth").MapAuthEndpoints();
         app.MapGroup("/Api/User").MapUserEndpoints();
 
+        return app;
+    }
+
+    /// <summary>
+    /// (Optional) Registers the GraphQL server (HotChocolate) for Sandlada Auth.
+    /// Call this in addition to AddAuthExtension if you want /graphql support in a consuming host.
+    /// </summary>
+    public static IServiceCollection AddGraphQLAuthExtension(this IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddMutationType<Mutation>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// (Optional) Maps the GraphQL endpoint (/graphql). Call after UseAuthExtension (or equivalent auth middleware).
+    /// </summary>
+    public static WebApplication UseGraphQLAuthExtension(this WebApplication app)
+    {
+        app.MapGraphQL();
         return app;
     }
 }

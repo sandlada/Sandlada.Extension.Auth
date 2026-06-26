@@ -12,6 +12,7 @@ public sealed class AuthDbContext : DbContext, IApplicationUnitOfWork {
     public DbSet<LoginVerificationEntity> LoginVerifications => this.Set<LoginVerificationEntity>();
     public DbSet<AuthSessionEntity> AuthSessions => this.Set<AuthSessionEntity>();
     public DbSet<OAuthClientEntity> OAuthClients => this.Set<OAuthClientEntity>();
+    public DbSet<PasswordLoginAttemptEntity> PasswordLoginAttempts => this.Set<PasswordLoginAttemptEntity>();
 
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) {
     }

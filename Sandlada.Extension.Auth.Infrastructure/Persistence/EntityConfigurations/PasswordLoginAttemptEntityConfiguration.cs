@@ -1,0 +1,20 @@
+using Sandlada.Extension.Auth.Infrastructure.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Sandlada.Extension.Auth.Infrastructure.Persistence.EntityConfigurations;
+
+public sealed class PasswordLoginAttemptEntityConfiguration : IEntityTypeConfiguration<PasswordLoginAttemptEntity> {
+    public void Configure(EntityTypeBuilder<PasswordLoginAttemptEntity> builder) {
+        builder.ToTable("PasswordLoginAttempts");
+        builder.HasKey(entity => entity.Id);
+        builder.Property(entity => entity.EmailAddress).IsRequired();
+        builder.Property(entity => entity.EmailAddressNormalized).IsRequired();
+        builder.HasIndex(entity => entity.EmailAddressNormalized).IsUnique();
+        builder.Property(entity => entity.FailedAttemptCount).IsRequired().HasDefaultValue(0);
+        builder.Property(entity => entity.RequestCount).IsRequired().HasDefaultValue(0);
+        builder.Property(entity => entity.RequestCountDate).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(entity => entity.CreatedAt).IsRequired();
+        builder.Property(entity => entity.UpdatedAt).IsRequired();
+    }
+}

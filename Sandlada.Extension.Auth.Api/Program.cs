@@ -1,4 +1,6 @@
+using HotChocolate;
 using Sandlada.Extension.Auth.Api.Endpoints;
+using Sandlada.Extension.Auth.Api.GraphQL;
 using Sandlada.Extension.Auth.Application;
 using Sandlada.Extension.Auth.Domain.ValueObjects;
 using Sandlada.Extension.Auth.Infrastructure;
@@ -54,6 +56,11 @@ builder.Services.AddAuthorization(options => {
     options.AddPolicy(UserRole.AdministratorString, policy => policy.RequireRole(UserRole.AdministratorString));
     options.AddPolicy(UserRole.NormalString, policy => policy.RequireRole(UserRole.NormalString));
 });
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>();
 
 builder.Services.AddOpenIddict()
     .AddCore(coreOptions => {
@@ -130,5 +137,7 @@ app.MapGroup("/Api/User").MapUserEndpoints();
 app.MapGroup("/Api/UserProfile").MapUserProfileEndpoints();
 app.MapGroup("/Api/OAuthClient").MapOAuthClientEndpoints();
 app.MapOpenIddictEndpoints();
+
+app.MapGraphQL();
 
 app.Run();

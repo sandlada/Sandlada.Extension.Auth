@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -88,7 +87,7 @@ public static class AuthEndpoints {
         var request = new RegisterOneUserCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
-            await SignInAsync(httpContext, result.Value);
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
         }
         return ToHttpResult(result);
     }
@@ -99,7 +98,7 @@ public static class AuthEndpoints {
         HttpContext httpContext,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) {
             return TypedResults.Unauthorized();
         }
 
@@ -114,14 +113,14 @@ public static class AuthEndpoints {
         HttpContext httpContext,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) {
             return TypedResults.Unauthorized();
         }
 
         var request = new ConfirmEmailRebindCommand(userId, requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
-            await SignInAsync(httpContext, result.Value);
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
         }
         return ToHttpResult(result);
     }
@@ -135,7 +134,7 @@ public static class AuthEndpoints {
         var request = new LoginOneUserByEmailAddressAndPasswordCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
-            await SignInAsync(httpContext, result.Value);
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
         }
         return ToHttpResult(result);
     }
@@ -149,7 +148,7 @@ public static class AuthEndpoints {
         var request = new LoginOneUserByUniqueNameAndPasswordCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
-            await SignInAsync(httpContext, result.Value);
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
         }
         return ToHttpResult(result);
     }
@@ -173,7 +172,7 @@ public static class AuthEndpoints {
         var request = new LoginOneUserByEmailAddressAndVerificationCodeCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
-            await SignInAsync(httpContext, result.Value);
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
         }
         return ToHttpResult(result);
     }
@@ -187,7 +186,7 @@ public static class AuthEndpoints {
         var request = new LoginOneUserByUniqueNameAndVerificationCodeCommand(requestArgs);
         var result = await sender.Send(request, cancellationToken);
         if (result.IsSuccess) {
-            await SignInAsync(httpContext, result.Value);
+            await AuthCookieHelper.SignInAsync(httpContext, result.Value);
         }
         return ToHttpResult(result);
     }
@@ -196,7 +195,7 @@ public static class AuthEndpoints {
         ISender sender,
         HttpContext httpContext
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) {
             return TypedResults.Unauthorized();
         }
 
@@ -213,7 +212,7 @@ public static class AuthEndpoints {
         HttpContext httpContext,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) {
             return TypedResults.Unauthorized();
         }
 
@@ -249,39 +248,6 @@ public static class AuthEndpoints {
         return ToHttpResult(result);
     }
 
-    private static async Task SignInAsync(HttpContext httpContext, AuthenticatedUserResponse user) {
-        var uniqueName = string.IsNullOrWhiteSpace(user.UniqueName) ? null : user.UniqueName;
-        var principalName = uniqueName ?? user.EmailAddress;
-
-        var claims = new List<Claim> {
-            new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new(ClaimTypes.Email, user.EmailAddress),
-            new(ClaimTypes.Name, principalName),
-            new(ClaimTypes.Role, user.Role),
-            new("is_email_verified", user.IsEmailVerified.ToString()),
-        };
-
-        if (uniqueName is not null) {
-            claims.Add(new Claim("unique_name", uniqueName));
-        }
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
-        var principal = new ClaimsPrincipal(identity);
-        var properties = new AuthenticationProperties {
-            AllowRefresh = true,
-            IsPersistent = true,
-            IssuedUtc = DateTimeOffset.UtcNow,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
-        };
-
-        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
-    }
-
-    private static bool TryGetCurrentUserId(HttpContext httpContext, out Guid userId) {
-        var rawUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(rawUserId, out userId);
-    }
-
     private static IResult ToHttpResult<T>(Sandlada.Extension.Auth.Domain.Commons.IResult<T> result) {
         if (result.IsSuccess) return TypedResults.Ok(result.Value);
         return ToFailureResult<T>(result.Error);
@@ -293,6 +259,9 @@ public static class AuthEndpoints {
         if (error == DomainError.Auth.SessionNotFound) return TypedResults.NotFound(error);
         if (error == DomainError.Auth.EmailRebindVerificationNotFound) return TypedResults.NotFound(error);
         if (error == DomainError.Auth.VerificationCodeNotFound) return TypedResults.NotFound(error);
+        if (error == DomainError.Auth.PasswordLoginRequestLimitExceeded) return TypedResults.StatusCode(StatusCodes.Status429TooManyRequests);
+        if (error == DomainError.Auth.PasswordLoginFailedAttemptLimitExceeded) return TypedResults.StatusCode(StatusCodes.Status429TooManyRequests);
+        if (error == DomainError.Auth.AccountLocked) return TypedResults.StatusCode(StatusCodes.Status429TooManyRequests);
         return TypedResults.BadRequest(error);
     }
 }

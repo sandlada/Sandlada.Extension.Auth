@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MediatR;
 using Sandlada.Extension.Auth.Application.UserProfiles;
 using Sandlada.Extension.Auth.Domain.Commons;
@@ -69,7 +68,7 @@ public static class UserProfileEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
         var request = new FindOneUserProfileByUserIdQuery(new FindOneUserProfileByUserIdQueryArgs { UserId = userId });
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
@@ -81,7 +80,7 @@ public static class UserProfileEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
         var request = new InsertOneUserProfileCommand(userId, requestArgs);
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
@@ -93,7 +92,7 @@ public static class UserProfileEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
         var request = new UpdateOneUserProfileCommand(userId, requestArgs);
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
@@ -105,7 +104,7 @@ public static class UserProfileEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
         var request = new InsertOrUpdateOneUserProfileCommand(userId, requestArgs);
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
@@ -116,7 +115,7 @@ public static class UserProfileEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
         var request = new RemoveOneUserProfileCommand(new RemoveOneUserProfileCommandArgs { UserId = userId });
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
@@ -127,7 +126,7 @@ public static class UserProfileEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) return TypedResults.Unauthorized();
         var request = new ResetOneUserProfileCommand(new ResetOneUserProfileCommandArgs { UserId = userId });
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
@@ -195,11 +194,6 @@ public static class UserProfileEndpoints {
         var request = new ResetOneUserProfileCommand(new ResetOneUserProfileCommandArgs { UserId = userId });
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
-    }
-
-    private static bool TryGetCurrentUserId(HttpContext httpContext, out Guid userId) {
-        var rawUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(rawUserId, out userId);
     }
 
     private static IResult ToHttpResult<T>(Sandlada.Extension.Auth.Domain.Commons.IResult<T> result) {

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MediatR;
 using Sandlada.Extension.Auth.Application.Users;
 using Sandlada.Extension.Auth.Domain.Commons;
@@ -133,18 +132,13 @@ public static class UserEndpoints {
         ISender sender,
         CancellationToken cancellationToken
     ) {
-        if (!TryGetCurrentUserId(httpContext, out var userId)) {
+        if (!AuthCookieHelper.TryGetCurrentUserId(httpContext, out var userId)) {
             return TypedResults.Unauthorized();
         }
 
         var request = new FindOneCurrentUserUserStatusQuery(userId);
         var result = await sender.Send(request, cancellationToken);
         return ToHttpResult(result);
-    }
-
-    private static bool TryGetCurrentUserId(HttpContext httpContext, out Guid userId) {
-        var rawUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(rawUserId, out userId);
     }
 
     private static IResult ToHttpResult<T>(Sandlada.Extension.Auth.Domain.Commons.IResult<T> result) {

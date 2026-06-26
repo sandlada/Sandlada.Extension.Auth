@@ -23,7 +23,7 @@ public sealed class AuthApiTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task LoginByEmailAddress_WithInvalidCredentials_ReturnsUnauthorized() {
         var client = this.factory.CreateClient();
 
-        var response = await client.PostAsJsonAsync("/Api/Auth/LoginByEmailAddress", new {
+        var response = await client.PostAsJsonAsync("/Api/Auth/LoginByEmailAddressAndPassword", new {
             emailAddress = "nonexistent@example.com",
             password = "wrong",
         });

@@ -3,10 +3,19 @@
 @adminPassword = admin
 @registrationEmail = user@example.com
 @rebindTargetEmail = user2@example.com
+@uniqueName = chatuser
+@newUserEmail = newuser@example.com
 
 # Development auth cookies require HTTPS because CookieSecurePolicy is Always.
+# Use an IDE HTTP client (Rider HTTP Client / VS Code REST Client) that shares cookies across requests in this file.
+# After login requests, subsequent authorized calls reuse the __Host-Sandlada.Auth cookie.
+# For verification code flows in dev, read the code from smtp4dev (Rnwood.Smtp4dev) inbox or DB.
 
-### Request a registration verification code
+### ============================================
+### AUTH - Anonymous flows (registration / login)
+### ============================================
+
+### Request a registration verification code (anon)
 POST {{SandladaAuth_HostAddress}}/Api/Auth/RequestRegistrationVerificationCode
 Content-Type: application/json
 Accept: application/json
@@ -16,17 +25,30 @@ Accept: application/json
 	"password": "user"
 }
 
-### Request an email rebind verification code
-POST {{SandladaAuth_HostAddress}}/Api/Auth/RequestEmailRebindVerificationCode
+### Register (anon) - uses code from previous step
+# Body must include the verificationCode received by email
+POST {{SandladaAuth_HostAddress}}/Api/Auth/Register
 Content-Type: application/json
 Accept: application/json
 
 {
-	"emailAddress": "{{rebindTargetEmail}}"
+	"emailAddress": "{{registrationEmail}}",
+	"verificationCode": "000000",   # <- replace with real code from dev mail server
+	"uniqueName": "{{uniqueName}}",
+	"password": "user"
 }
 
-### Login as admin
-POST {{SandladaAuth_HostAddress}}/Api/Auth/LoginByEmailAddress
+### Request login verification code (anon) - by email or uniqueName
+POST {{SandladaAuth_HostAddress}}/Api/Auth/RequestLoginVerificationCode
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{registrationEmail}}"
+}
+
+### Login by email + password (anon)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/LoginByEmailAddressAndPassword
 Content-Type: application/json
 Accept: application/json
 
@@ -35,4 +57,348 @@ Accept: application/json
 	"password": "{{adminPassword}}"
 }
 
-###
+### Login by uniqueName + password (anon)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/LoginByUniqueNameAndPassword
+Content-Type: application/json
+Accept: application/json
+
+{
+	"uniqueName": "{{uniqueName}}",
+	"password": "user"
+}
+
+### Login by email + verification code (anon)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/LoginByEmailAddressAndVerificationCode
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{registrationEmail}}",
+	"verificationCode": "000000"   # <- replace with real code
+}
+
+### Login by uniqueName + verification code (anon)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/LoginByUniqueNameAndVerificationCode
+Content-Type: application/json
+Accept: application/json
+
+{
+	"uniqueName": "{{uniqueName}}",
+	"verificationCode": "000000"   # <- replace with real code
+}
+
+### ============================================
+### AUTH - Authenticated (requires prior login cookie)
+### ============================================
+
+### Request email rebind verification code (auth required)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/RequestEmailRebindVerificationCode
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{rebindTargetEmail}}"
+}
+
+### Confirm email rebind (auth required)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/ConfirmEmailRebind
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{rebindTargetEmail}}",
+	"verificationCode": "000000"
+}
+
+### Logout current session (auth)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/Logout
+Content-Type: application/json
+Accept: application/json
+
+### Logout all sessions for current user (auth)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/LogoutAllSessions
+Content-Type: application/json
+Accept: application/json
+
+### ============================================
+### AUTH - Admin only (login as admin first)
+### ============================================
+
+### Kick one session (admin)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/KickOneSession/some-session-id-here
+Content-Type: application/json
+Accept: application/json
+
+### Kick many sessions by user id (admin)
+POST {{SandladaAuth_HostAddress}}/Api/Auth/KickManySessionsByUserId/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+Accept: application/json
+
+### ============================================
+### USER (mostly admin, one self endpoint)
+### ============================================
+
+### Get current user status (any authenticated user)
+GET {{SandladaAuth_HostAddress}}/Api/User/FindOneCurrentUserStatus
+Accept: application/json
+
+### Find one user by id (admin only)
+GET {{SandladaAuth_HostAddress}}/Api/User/FindOneUserById/00000000-0000-0000-0000-000000000001
+Accept: application/json
+
+### Update user email verified flag (admin)
+PUT {{SandladaAuth_HostAddress}}/Api/User/UpdateOneUserEmailVerified/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+{
+	"userId": "00000000-0000-0000-0000-000000000001",
+	"isEmailVerified": true
+}
+
+### Update one user (admin) - partial fields allowed
+PUT {{SandladaAuth_HostAddress}}/Api/User/UpdateOneUser/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+{
+	"uniqueName": "updatedname",
+	"role": "normal"
+}
+
+### Insert one user (admin)
+POST {{SandladaAuth_HostAddress}}/Api/User/InsertOneUser
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{newUserEmail}}",
+	"uniqueName": "inserteduser",
+	"password": "P@ssw0rd!",
+	"role": "normal",
+	"isEmailVerified": false
+}
+
+### Insert or update one user (admin, upsert semantics)
+PUT {{SandladaAuth_HostAddress}}/Api/User/InsertOrUpdateOneUser
+Content-Type: application/json
+Accept: application/json
+
+{
+	"emailAddress": "{{newUserEmail}}",
+	"password": "NewPass123!",
+	"role": "administrator"
+}
+
+### Remove one user (admin)
+DELETE {{SandladaAuth_HostAddress}}/Api/User/RemoveOneUser/00000000-0000-0000-0000-000000000099
+Accept: application/json
+
+### Update user status (admin)
+PUT {{SandladaAuth_HostAddress}}/Api/User/UpdateOneUserUserStatus/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+{
+	"status": "Enabled"
+}
+
+### ============================================
+### USER PROFILE (self + admin)
+### ============================================
+
+### Get current user's profile (auth)
+GET {{SandladaAuth_HostAddress}}/Api/UserProfile/FindOneCurrentUserProfile
+Accept: application/json
+
+### Insert current user profile (auth)
+POST {{SandladaAuth_HostAddress}}/Api/UserProfile/InsertOneCurrentUserProfile
+Content-Type: application/json
+Accept: application/json
+
+{
+	"sourceColorArgb": 4294961979,
+	"isDarkMode": true,
+	"contrastLevel": 0,
+	"themeVariantCode": 0,
+	"displayName": "My Display Name",
+	"gender": "Unknown",
+	"preferredLanguage": "zh-TW",
+	"metadata": "{\"theme\":\"custom\"}"
+}
+
+### Update current user profile (auth)
+PUT {{SandladaAuth_HostAddress}}/Api/UserProfile/UpdateOneCurrentUserProfile
+Content-Type: application/json
+Accept: application/json
+
+{
+	"isDarkMode": false,
+	"displayName": "Updated Name"
+}
+
+### Insert or update current user profile (auth)
+PUT {{SandladaAuth_HostAddress}}/Api/UserProfile/InsertOrUpdateOneCurrentUserProfile
+Content-Type: application/json
+Accept: application/json
+
+{
+	"sourceColorArgb": 4282685196,
+	"isDarkMode": true
+}
+
+### Remove current user profile (auth)
+DELETE {{SandladaAuth_HostAddress}}/Api/UserProfile/RemoveOneCurrentUserProfile
+Accept: application/json
+
+### Reset current user profile (auth)
+POST {{SandladaAuth_HostAddress}}/Api/UserProfile/ResetOneCurrentUserProfile
+Content-Type: application/json
+Accept: application/json
+
+### --- Admin user profile operations (login as admin) ---
+
+### Find user profile by userId (admin)
+GET {{SandladaAuth_HostAddress}}/Api/UserProfile/FindOneUserProfileByUserId/00000000-0000-0000-0000-000000000001
+Accept: application/json
+
+### Insert user profile by userId (admin)
+POST {{SandladaAuth_HostAddress}}/Api/UserProfile/InsertOneUserProfileByUserId/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+{
+	"displayName": "Admin Created Profile"
+}
+
+### Update user profile by userId (admin)
+PUT {{SandladaAuth_HostAddress}}/Api/UserProfile/UpdateOneUserProfileByUserId/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+{
+	"isDarkMode": true
+}
+
+### Insert or update by userId (admin)
+PUT {{SandladaAuth_HostAddress}}/Api/UserProfile/InsertOrUpdateOneUserProfileByUserId/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+{
+	"sourceColorArgb": 4278190317
+}
+
+### Remove user profile by userId (admin)
+DELETE {{SandladaAuth_HostAddress}}/Api/UserProfile/RemoveOneUserProfileByUserId/00000000-0000-0000-0000-000000000099
+Accept: application/json
+
+### Reset user profile by userId (admin)
+POST {{SandladaAuth_HostAddress}}/Api/UserProfile/ResetOneUserProfileByUserId/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Accept: application/json
+
+### ============================================
+### OAUTH CLIENT (admin only)
+### ============================================
+
+### Insert OAuth client (admin) - response includes clientSecret (store securely)
+POST {{SandladaAuth_HostAddress}}/Api/OAuthClient/InsertOne
+Content-Type: application/json
+Accept: application/json
+
+{
+	"clientId": "chatwithai-client",
+	"displayName": "ChatWithAI Client",
+	"redirectUris": ["https://localhost:3000/callback", "https://chat.example.com/cb"],
+	"postLogoutRedirectUris": ["https://localhost:3000/"],
+	"allowedScopes": ["openid", "profile", "email", "offline_access"],
+	"allowedGrantTypes": ["authorization_code", "refresh_token"]
+}
+
+### Find one OAuth client by clientId (admin)
+GET {{SandladaAuth_HostAddress}}/Api/OAuthClient/FindOneByClientId/chatwithai-client
+Accept: application/json
+
+### Find many OAuth clients (admin)
+GET {{SandladaAuth_HostAddress}}/Api/OAuthClient/FindMany
+Accept: application/json
+
+### Remove one OAuth client (admin)
+POST {{SandladaAuth_HostAddress}}/Api/OAuthClient/RemoveOne/00000000-0000-0000-0000-000000000010
+Content-Type: application/json
+Accept: application/json
+
+### ============================================
+### OPENIDDICT / CONNECT (OIDC/OAuth flows)
+### Note: Authorize usually involves browser redirect + cookies. Token is form POST.
+### ============================================
+
+### UserInfo (requires valid access token, usually obtained via /Connect/Token)
+GET {{SandladaAuth_HostAddress}}/Connect/UserInfo
+Accept: application/json
+
+### Token exchange (form encoded, typical after /Connect/Authorize)
+# Use real code or refresh_token obtained from previous authorize step
+POST {{SandladaAuth_HostAddress}}/Connect/Token
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+grant_type=authorization_code&code=REPLACE_WITH_REAL_CODE&redirect_uri=https%3A%2F%2Flocalhost%3A3000%2Fcallback&client_id=chatwithai-client&code_verifier=...
+
+### Logout (OpenIddict end session)
+GET {{SandladaAuth_HostAddress}}/Connect/Logout
+Accept: application/json
+
+### ============================================
+### GRAPHQL - Postman 专用版本
+### 请严格按照下面步骤操作
+
+### 步骤 0: Postman 必做设置
+# 1. 打开 Postman → Settings (齿轮图标) → General
+#    - 关闭 "SSL certificate verification" (必须关！)
+# 2. URL 必须用 https://localhost:7225/graphql
+# 3. Body 类型选择 raw → JSON
+# 4. 登录成功后，点击请求上方的 "Cookies" 按钮检查是否出现 __Host-Sandlada.Auth
+
+### 1. 测试 GraphQL 是否活着（最先执行这个）
+POST {{SandladaAuth_HostAddress}}/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __schema { queryType { name } mutationType { name } } }"
+}
+
+### 2. 普通用户登录（复制整个 JSON 作为 Body）
+POST {{SandladaAuth_HostAddress}}/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { loginByEmailAddressAndPassword(input: { emailAddress: \"admin@example.com\", password: \"admin\" }) { userId emailAddress uniqueName role isEmailVerified } }"
+}
+
+### 3. 查询当前用户（登录成功后再执行）
+POST {{SandladaAuth_HostAddress}}/graphql
+Content-Type: application/json
+
+{
+  "query": "query { getCurrentUser { userId emailAddress uniqueName role isEmailVerified } getCurrentUserProfile { userId displayName isDarkMode sourceColorArgb contrastLevel } getCurrentUserStatus { status } }"
+}
+
+### 4. 更新自己的 Profile（普通用户权限）
+POST {{SandladaAuth_HostAddress}}/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { updateCurrentUserProfile(input: { displayName: \"测试用户\", isDarkMode: true }) { userId displayName isDarkMode sourceColorArgb } }"
+}
+
+### 5. 登出
+POST {{SandladaAuth_HostAddress}}/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { logout }"
+}
+
+

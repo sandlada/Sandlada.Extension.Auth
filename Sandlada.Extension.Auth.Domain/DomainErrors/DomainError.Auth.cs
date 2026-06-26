@@ -18,5 +18,8 @@ public sealed partial record DomainError {
         public static readonly DomainError LoginRequestLimitExceeded = new("Auth.LoginRequestLimitExceeded", "The same email address can only submit 10 login requests per UTC day.");
         public static readonly DomainError EmailRebindVerificationNotFound = new("Auth.EmailRebindVerificationNotFound", "The email rebind verification challenge was not found.");
         public static readonly DomainError SessionNotFound = new("Auth.SessionNotFound", "The session was not found.");
+        public static readonly DomainError PasswordLoginRequestLimitExceeded = new("Auth.PasswordLoginRequestLimitExceeded", "The same email address can only submit 20 password login requests per UTC day.");
+        public static readonly DomainError PasswordLoginFailedAttemptLimitExceeded = new("Auth.PasswordLoginFailedAttemptLimitExceeded", "Too many failed password login attempts. The account has been temporarily locked for 15 minutes.");
+        public static readonly DomainError AccountLocked = new("Auth.AccountLocked", "The account is currently locked due to multiple failed login attempts. Please try again later.");
     }
 }
